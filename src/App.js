@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import axios from "axios";
+
 import Filter from "./components/Filter";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
@@ -24,14 +26,30 @@ const App = () => {
       number: newName.number,
     };
 
-    personsServices.create(nameObject).then((returnedPerson) => {
-      if (persons.find((person) => person.name === nameObject.name)) {
-        alert(`${nameObject.name} is already added to phonebook`);
-      } else {
+    const existedPerson = persons.find(
+      (person) => person.name === nameObject.name
+    );
+
+    if (existedPerson) {
+      let isExecuted = window.confirm(
+        `${existedPerson.name} exists. Do you want to replace it?`
+      );
+      if (isExecuted) {
+        axios
+          .put(`http://localhost:3001/persons/${existedPerson.id}`, nameObject)
+          .then((response) => {
+            const personsCopy = [...persons];
+            const existedPersonIndex = personsCopy.indexOf(existedPerson);
+            personsCopy[existedPersonIndex] = response.data;
+            setPersons(personsCopy);
+          });
+      }
+    } else {
+      personsServices.create(nameObject).then((returnedPerson) => {
         setPersons(persons.concat(returnedPerson));
         setNewName("");
-      }
-    });
+      });
+    }
   };
 
   const handleChange = (event) => {
