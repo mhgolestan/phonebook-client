@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 import Filter from "./components/Filter";
@@ -41,6 +40,15 @@ const App = () => {
     setNewName((values) => ({ ...values, [name]: value }));
   };
 
+  const handleDelete = (id) => {
+    let isExecuted = window.confirm("Are you sure?");
+    if (isExecuted) {
+      personsServices.deletePerson(id).then(() => {
+        setPersons(persons.filter((person) => person.id !== id));
+      });
+    }
+  };
+
   const handleSearch = (event) => {
     const search = event.target.value;
     setSearchResult(search);
@@ -67,7 +75,7 @@ const App = () => {
       />
 
       <h3>Numbers</h3>
-      <Persons personsToShow={personsToShow} />
+      <Persons personsToShow={personsToShow} handleDelete={handleDelete} />
     </div>
   );
 };
