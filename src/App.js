@@ -7,33 +7,30 @@ import Persons from "./components/Persons";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
-
   const [newName, setNewName] = useState({});
   const [searchResult, setSearchResult] = useState("");
+
   useEffect(() => {
-    // console.log("effect");
     axios.get("http://localhost:3001/persons").then((response) => {
       setPersons(response.data);
-      // console.log("promise fulfilled");
-      // console.log(response.data);
     });
   }, []);
-  // console.log("render");
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const nameObject = {
       name: newName.name,
       number: newName.number,
-      id: persons.length + 1,
     };
 
-    if (persons.find((person) => person.name === nameObject.name)) {
-      alert(`${nameObject.name} is already added to phonebook`);
-    } else {
-      setPersons(persons.concat(nameObject));
-      setNewName("");
-    }
+    axios.post("http://localhost:3001/persons", nameObject).then((response) => {
+      if (persons.find((person) => person.name === nameObject.name)) {
+        alert(`${nameObject.name} is already added to phonebook`);
+      } else {
+        setPersons(persons.concat(response.data));
+        setNewName("");
+      }
+    });
   };
 
   const handleChange = (event) => {
