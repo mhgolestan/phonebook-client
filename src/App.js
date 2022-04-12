@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-
+import "./App.css";
 import axios from "axios";
 
-import Filter from "./components/Filter";
-import PersonForm from "./components/PersonForm";
-import Persons from "./components/Persons";
+import Filter from "./components/Filter/Filter";
+import PersonForm from "./components/PersonForm/PersonForm";
+import Persons from "./components/Persons/Persons";
+import Notification from "./components/Notification/Notification";
+import Footer from "./components/Footer/Footer";
 
 import personsServices from "./services/persons";
 
@@ -12,6 +14,10 @@ const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState({});
   const [searchResult, setSearchResult] = useState("");
+  const [notification, setNotification] = useState({
+    message: null,
+    flag: null,
+  });
 
   useEffect(() => {
     personsServices.getAll().then((initialPersosns) => {
@@ -35,19 +41,39 @@ const App = () => {
         `${existedPerson.name} exists. Do you want to replace it?`
       );
       if (isExecuted) {
-        axios
-          .put(`http://localhost:3001/persons/${existedPerson.id}`, nameObject)
-          .then((response) => {
+        personsServices
+          .editPerson(existedPerson.id, nameObject)
+          .then((responseData) => {
             const personsCopy = [...persons];
             const existedPersonIndex = personsCopy.indexOf(existedPerson);
-            personsCopy[existedPersonIndex] = response.data;
+            personsCopy[existedPersonIndex] = responseData;
             setPersons(personsCopy);
+
+            setNotification({
+              message: `${existedPerson.name} is modified`,
+              flag: "modified",
+            });
+            setTimeout(() => setNotification(""), 5000);
+          })
+          .catch((error) => {
+            setNotification({
+              message: `Information for ${
+                persons.find((person) => person.id === existedPerson.id).name
+              } has already deleted`,
+              flag: "error",
+            });
           });
       }
     } else {
       personsServices.create(nameObject).then((returnedPerson) => {
         setPersons(persons.concat(returnedPerson));
         setNewName("");
+
+        setNotification({
+          message: `${returnedPerson.name} is added`,
+          flag: "successful",
+        });
+        setTimeout(() => setNotification(""), 5000);
       });
     }
   };
@@ -61,9 +87,27 @@ const App = () => {
   const handleDelete = (id) => {
     let isExecuted = window.confirm("Are you sure?");
     if (isExecuted) {
-      personsServices.deletePerson(id).then(() => {
-        setPersons(persons.filter((person) => person.id !== id));
-      });
+      personsServices
+        .deletePerson(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+          setNewName("");
+          setNotification({
+            message: `${
+              persons.find((person) => person.id === id).name
+            } is deleted`,
+            flag: "deleted",
+          });
+          setTimeout(() => setNotification(""), 5000);
+        })
+        .catch((error) => {
+          setNotification({
+            message: `Information for ${
+              persons.find((person) => person.id === id).name
+            } has already deleted`,
+            flag: "error",
+          });
+        });
     }
   };
 
@@ -81,10 +125,11 @@ const App = () => {
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h1>Phone book</h1>
+      <Notification message={notification.message} flag={notification.flag} />
 
       <Filter handleSearch={handleSearch} searchResult={searchResult} />
-      <h3>Add a new</h3>
+      <h1>Add a new</h1>
       <PersonForm
         handleSubmit={handleSubmit}
         handleChange={handleChange}
@@ -92,8 +137,9 @@ const App = () => {
         number={newName.number}
       />
 
-      <h3>Numbers</h3>
+      <h1>Numbers</h1>
       <Persons personsToShow={personsToShow} handleDelete={handleDelete} />
+      <Footer />
     </div>
   );
 };
