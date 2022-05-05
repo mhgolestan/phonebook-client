@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import axios from "axios";
 
 import Filter from "./components/Filter/Filter";
 import PersonForm from "./components/PersonForm/PersonForm";
@@ -56,25 +55,36 @@ const App = () => {
             setTimeout(() => setNotification(""), 5000);
           })
           .catch((error) => {
+            console.log(error.response.data.error);
             setNotification({
-              message: `Information for ${
-                persons.find((person) => person.id === existedPerson.id).name
-              } has already deleted`,
+              message: error.response.data.error,
               flag: "error",
             });
           });
       }
     } else {
-      personsServices.create(nameObject).then((returnedPerson) => {
-        setPersons(persons.concat(returnedPerson));
-        setNewName("");
+      personsServices
+        .create(nameObject)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setNewName("");
 
-        setNotification({
-          message: `${returnedPerson.name} is added`,
-          flag: "successful",
+          // console.log(returnedPerson.length);
+          // if (returnedPerson.)
+          setNotification({
+            message: `${returnedPerson.name} is added`,
+            flag: "successful",
+          });
+          setTimeout(() => setNotification(""), 5000);
+        })
+        .catch((error) => {
+          console.log(error.response.data.error);
+          setNotification({
+            message: error.response.data.error,
+            flag: "error",
+          });
+          setTimeout(() => setNotification(""), 5000);
         });
-        setTimeout(() => setNotification(""), 5000);
-      });
     }
   };
 

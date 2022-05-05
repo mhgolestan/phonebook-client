@@ -15,7 +15,7 @@ const PersonForm = ({ handleSubmit, name, number, handleChange }) => {
           Enter phone number: {""}
           number:{" "}
           <input
-            type="number"
+            type="text"
             name="number"
             value={number || ""}
             onChange={handleChange}
